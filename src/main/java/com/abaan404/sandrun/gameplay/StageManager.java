@@ -18,7 +18,6 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.plasmid.api.game.GameCloseReason;
@@ -176,14 +175,19 @@ public class StageManager {
             BlockBounds sandSpawn = this.map.getRegions().sandSpawn();
 
             // spawn at player's x, z and the sand region's minimum height
-            Vec3d spawnLocation = new Vec3d(playerPos.getX(), sandSpawn.min().getY(), playerPos.getZ());
+            BlockPos spawnLocation = new BlockPos(playerPos.getX(), sandSpawn.min().getY(), playerPos.getZ());
 
-            // dont spawn anything if player is not within the range
-            if (!sandSpawn.asBox().contains(spawnLocation)) {
+            // dont spawn anything if there is an existing block
+            if (!this.world.getBlockState(spawnLocation).isAir()) {
                 continue;
             }
 
-            FallingBlockEntity.spawnFromBlock(this.world, BlockPos.ofFloored(spawnLocation), sPlayer.getBlockState());
+            // dont spawn anything if player is not within the range
+            if (!sandSpawn.asBox().contains(spawnLocation.toCenterPos())) {
+                continue;
+            }
+
+            FallingBlockEntity.spawnFromBlock(this.world, spawnLocation, sPlayer.getBlockState());
         }
     }
 

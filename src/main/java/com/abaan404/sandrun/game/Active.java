@@ -6,6 +6,8 @@ import com.abaan404.sandrun.gameplay.StageManager;
 import com.abaan404.sandrun.gameplay.Widgets;
 import com.mojang.authlib.GameProfile;
 
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -80,10 +82,16 @@ public class Active {
 
     private void addPlayer(ServerPlayerEntity player) {
         this.stageManager.spawnPlayer(player);
+
+        EntityAttributeInstance maxHealth = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+        maxHealth.setBaseValue(10);
     }
 
     private void removePlayer(ServerPlayerEntity player) {
         this.stageManager.toSpectator(PlayerRef.of(player));
+
+        EntityAttributeInstance maxHealth = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+        maxHealth.setBaseValue(EntityAttributes.MAX_HEALTH.value().getDefaultValue());
     }
 
     private EventResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {

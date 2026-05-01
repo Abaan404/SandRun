@@ -15,6 +15,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.map_templates.BlockBounds;
+import xyz.nucleoid.plasmid.api.game.GameCloseReason;
 import xyz.nucleoid.plasmid.api.game.GameSpace;
 import xyz.nucleoid.plasmid.api.util.PlayerRef;
 
@@ -29,6 +30,7 @@ public class StageManager {
     private final Map<PlayerRef, SandRunPlayer> participants = new Object2ObjectOpenHashMap<>();
 
     private int nextBlockStateIdx = 0;
+    private long duration = 0;
 
     public StageManager(GameSpace gameSpace, SandRunConfig config, ServerWorld world, SandRunMap map) {
         this.gameSpace = gameSpace;
@@ -63,34 +65,20 @@ public class StageManager {
      * Tick forward the game.
      */
     public void tick() {
-        // only tick every N ticks
-        if (this.gameSpace.getServer().getTicks() % this.config.frequency() != 0) {
+        boolean allDisconnected = true;
+        for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
+            allDisconnected &= !PlayerRef.of(player).isOnline(this.gameSpace);
+        }
+
+        if (this.duration > this.config.duration() || this.participants.isEmpty() || allDisconnected) {
+            this.endGame();
             return;
         }
 
-        for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
-            PlayerRef playerRef = PlayerRef.of(player);
+        // summon blocks
+        this.tickFallingBlocks();
 
-            if (!this.participants.containsKey(playerRef)) {
-                continue;
-            }
-
-            SandRunPlayer sPlayer = this.participants.get(playerRef);
-
-            BlockPos playerPos = player.getBlockPos();
-            BlockBounds sandSpawn = this.map.getRegions().sandSpawn();
-
-            // spawn at player's x, z and the sand region's minimum height
-            Vec3d spawnLocation = new Vec3d(playerPos.getX(), sandSpawn.min().getY(), playerPos.getZ());
-
-            // dont spawn anything if player is not within the range
-            if (!sandSpawn.asBox().contains(spawnLocation)) {
-                continue;
-            }
-
-            FallingBlockEntity.spawnFromBlock(this.world, BlockPos.ofFloored(spawnLocation),
-                    sPlayer.getBlockState());
-        }
+        this.duration += this.world.getTickManager().getMillisPerTick();
     }
 
     /**
@@ -125,4 +113,39 @@ public class StageManager {
 
         this.participants.put(player, new SandRunPlayer(blockState));
     }
+
+    private void tickFallingBlocks() {
+        // only tick every N ticks
+        if (this.gameSpace.getServer().getTicks() % this.config.frequency() != 0) {
+            return;
+        }
+
+        for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
+            PlayerRef playerRef = PlayerRef.of(player);
+
+            if (!this.participants.containsKey(playerRef)) {
+                continue;
+            }
+
+            SandRunPlayer sPlayer = this.participants.get(playerRef);
+
+            BlockPos playerPos = player.getBlockPos();
+            BlockBounds sandSpawn = this.map.getRegions().sandSpawn();
+
+            // spawn at player's x, z and the sand region's minimum height
+            Vec3d spawnLocation = new Vec3d(playerPos.getX(), sandSpawn.min().getY(), playerPos.getZ());
+
+            // dont spawn anything if player is not within the range
+            if (!sandSpawn.asBox().contains(spawnLocation)) {
+                continue;
+            }
+
+            FallingBlockEntity.spawnFromBlock(this.world, BlockPos.ofFloored(spawnLocation), sPlayer.getBlockState());
+        }
+    }
+
+    private void endGame() {
+        this.gameSpace.close(GameCloseReason.FINISHED);
+    }
+
 }

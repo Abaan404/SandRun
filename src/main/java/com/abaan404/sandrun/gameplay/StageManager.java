@@ -1,6 +1,7 @@
 package com.abaan404.sandrun.gameplay;
 
 import java.util.Map;
+
 import com.abaan404.sandrun.SandRunConfig;
 import com.abaan404.sandrun.SandRunMap;
 import com.abaan404.sandrun.SandRunPlayer;
@@ -70,7 +71,7 @@ public class StageManager {
             allDisconnected &= !PlayerRef.of(player).isOnline(this.gameSpace);
         }
 
-        if (this.duration > this.config.duration() || this.participants.isEmpty() || allDisconnected) {
+        if (this.duration > this.config.maxDuration() || this.participants.isEmpty() || allDisconnected) {
             this.endGame();
             return;
         }
@@ -114,6 +115,43 @@ public class StageManager {
         this.participants.put(player, new SandRunPlayer(blockState));
     }
 
+    /**
+     * Check if the player is a participant.
+     *
+     * @param player The player.
+     * @return If they are on track ready to set a time.
+     */
+    public boolean isParticipant(PlayerRef player) {
+        return this.participants.containsKey(player);
+    }
+
+    /**
+     * Get the time left in ms
+     *
+     * @return The time left.
+     */
+    public long getDurationTimer() {
+        return Math.max(0, this.config.maxDuration() - this.duration);
+    }
+
+    /**
+     * Get the total number of players remaining
+     *
+     * @return The remaining players.
+     */
+    public int getParticipantCount() {
+        return this.participants.size();
+    }
+
+    /**
+     * Get game config.
+     *
+     * @return The loaded config.
+     */
+    public SandRunConfig getConfig() {
+        return this.config;
+    }
+
     private void tickFallingBlocks() {
         // only tick every N ticks
         if (this.gameSpace.getServer().getTicks() % this.config.frequency() != 0) {
@@ -147,5 +185,4 @@ public class StageManager {
     private void endGame() {
         this.gameSpace.close(GameCloseReason.FINISHED);
     }
-
 }

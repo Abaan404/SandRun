@@ -2,7 +2,7 @@
     "type": "sandrun:sandrun",
     "map": "sandrun:example",
     "pvp": false,
-    "duration": 60000,
+    "max_duration": 60000,
     "frequency": 4,
     "players": {
         "min": 1,

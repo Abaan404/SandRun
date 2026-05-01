@@ -1,7 +1,15 @@
 package com.abaan404.sandrun;
 
 import java.io.IOException;
+import java.util.List;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -18,8 +26,21 @@ public class SandRunMap {
     private final MapTemplate template;
 
     private final Regions regions;
+    private final Meta meta;
 
     public SandRunMap(MapTemplate template) {
+        NbtCompound root = template.getMetadata().getData();
+
+        Meta meta = Meta.DEFAULT;
+        if (root.contains("meta", NbtElement.COMPOUND_TYPE)) {
+            meta = Meta.CODEC
+                    .decode(NbtOps.INSTANCE, NbtOps.INSTANCE.getMap(root.getCompound("meta")).getOrThrow())
+                    .resultOrPartial((error) -> SandRun.LOGGER.error("Failed to read track meta: {}", error))
+                    .orElse(Meta.DEFAULT);
+        }
+
+        this.meta = meta;
+
         BlockBounds spawn = template.getMetadata()
                 .getRegions("spawn")
                 .findFirst()
@@ -83,6 +104,24 @@ public class SandRunMap {
         return this.regions;
     }
 
+    /**
+     * The meta for this track loaded from its template.
+     *
+     * @return The meta.
+     */
+    public Meta getMeta() {
+        return this.meta;
+    }
+
     public record Regions(BlockBounds spawn, BlockBounds sandSpawn) {
+    }
+
+    public record Meta(String name, List<String> authors) {
+        public static final Meta DEFAULT = new Meta("Unknown Track", List.of("Unknown Authors"));
+
+        public static final MapCodec<Meta> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+                Codec.STRING.optionalFieldOf("name", DEFAULT.name()).forGetter(Meta::name),
+                Codec.STRING.listOf().optionalFieldOf("authors", DEFAULT.authors()).forGetter(Meta::authors))
+                .apply(instance, Meta::new));
     }
 }

@@ -11,13 +11,13 @@ import net.minecraft.block.Blocks;
 import net.minecraft.util.Identifier;
 import xyz.nucleoid.plasmid.api.game.common.config.WaitingLobbyConfig;
 
-public record SandRunConfig(WaitingLobbyConfig players, Identifier map, boolean pvp, long duration, int frequency,
+public record SandRunConfig(WaitingLobbyConfig players, Identifier map, boolean pvp, long maxDuration, int frequency,
         List<BlockState> blocks) {
     public static final MapCodec<SandRunConfig> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             WaitingLobbyConfig.CODEC.fieldOf("players").forGetter(SandRunConfig::players),
             Identifier.CODEC.fieldOf("map").forGetter(SandRunConfig::map),
             Codec.BOOL.optionalFieldOf("pvp", false).forGetter(SandRunConfig::pvp),
-            Codec.LONG.optionalFieldOf("duration", (long) (3 * 60 * 1000)).forGetter(SandRunConfig::duration),
+            Codec.LONG.optionalFieldOf("max_duration", (long) (3 * 60 * 1000)).forGetter(SandRunConfig::maxDuration),
             Codec.INT.optionalFieldOf("frequency", 4).forGetter(SandRunConfig::frequency),
             Codec.list(BlockState.CODEC)
                     .optionalFieldOf("blocks", List.of(

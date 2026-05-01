@@ -3,6 +3,7 @@ package com.abaan404.sandrun.game;
 import com.abaan404.sandrun.SandRunConfig;
 import com.abaan404.sandrun.SandRunMap;
 import com.abaan404.sandrun.gameplay.StageManager;
+import com.abaan404.sandrun.gameplay.Widgets;
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.entity.damage.DamageSource;
@@ -22,10 +23,12 @@ import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
 public class Active {
     private final StageManager stageManager;
+    private final Widgets widgets;
 
     private Active(GameSpace gameSpace, ServerWorld world, SandRunMap map, GlobalWidgets widgets,
             SandRunConfig config) {
         this.stageManager = new StageManager(gameSpace, config, world, map);
+        this.widgets = new Widgets(gameSpace, widgets, map);
 
         // move players to participants from the lobby
         for (ServerPlayerEntity player : gameSpace.getPlayers().participants()) {
@@ -92,5 +95,6 @@ public class Active {
 
     private void tick() {
         this.stageManager.tick();
+        this.widgets.tick(this.stageManager);
     }
 }

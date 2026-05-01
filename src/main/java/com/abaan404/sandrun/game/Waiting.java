@@ -3,6 +3,7 @@ package com.abaan404.sandrun.game;
 import com.abaan404.sandrun.SandRunConfig;
 import com.abaan404.sandrun.SandRunMap;
 import com.abaan404.sandrun.gameplay.SpawnLogic;
+import com.abaan404.sandrun.utils.TextUtils;
 
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -46,7 +47,9 @@ public class Waiting {
         return context.openWithWorld(worldConfig, (game, world) -> {
             Waiting waiting = new Waiting(game.getGameSpace(), world, map, context.config());
 
-            GameWaitingLobby.addTo(game, config.players());
+            GameWaitingLobby lobby = GameWaitingLobby.addTo(game, config.players());
+
+            lobby.setSidebarTitle(TextUtils.scoreboardTitleText());
 
             game.listen(GameActivityEvents.REQUEST_START, waiting::requestStart);
             game.listen(GamePlayerEvents.ADD, waiting::addPlayer);

@@ -89,9 +89,6 @@ public class Active {
 
     private void removePlayer(ServerPlayerEntity player) {
         this.stageManager.toSpectator(PlayerRef.of(player));
-
-        EntityAttributeInstance maxHealth = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
-        maxHealth.setBaseValue(EntityAttributes.MAX_HEALTH.value().getDefaultValue());
     }
 
     private EventResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {

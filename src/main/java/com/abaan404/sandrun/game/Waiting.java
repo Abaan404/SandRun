@@ -6,6 +6,8 @@ import com.abaan404.sandrun.gameplay.SpawnLogic;
 import com.abaan404.sandrun.utils.TextUtils;
 
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
@@ -66,6 +68,16 @@ public class Waiting {
 
     private void addPlayer(ServerPlayerEntity player) {
         this.spawnPlayer(player);
+
+        StatusEffectInstance nightVision = new StatusEffectInstance(
+                StatusEffects.NIGHT_VISION,
+                StatusEffectInstance.INFINITE,
+                0,
+                false,
+                false,
+                false);
+
+        player.addStatusEffect(nightVision);
     }
 
     private EventResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {

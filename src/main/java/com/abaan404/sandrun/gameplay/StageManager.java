@@ -1,5 +1,6 @@
 package com.abaan404.sandrun.gameplay;
 
+import java.util.List;
 import java.util.Map;
 
 import com.abaan404.sandrun.SandRunConfig;
@@ -7,11 +8,15 @@ import com.abaan404.sandrun.SandRunMap;
 import com.abaan404.sandrun.SandRunPlayer;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.FallingBlockEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
@@ -71,7 +76,7 @@ public class StageManager {
             allDisconnected &= !PlayerRef.of(player).isOnline(this.gameSpace);
         }
 
-        if (this.duration > this.config.maxDuration() || this.participants.isEmpty() || allDisconnected) {
+        if (this.duration > this.config.maxDuration() || this.participants.size() <= 1 || allDisconnected) {
             this.endGame();
             return;
         }
@@ -183,6 +188,23 @@ public class StageManager {
     }
 
     private void endGame() {
+        MutableText winnerText = Text.empty();
+
+        List<String> playerNames = new ObjectArrayList<>();
+        for (PlayerRef winners : this.participants.keySet()) {
+            playerNames.add(winners.getEntity(this.gameSpace).getNameForScoreboard());
+        }
+
+        winnerText.append(" ");
+        winnerText.append(String.join(", ", playerNames));
+
+        if (playerNames.isEmpty()) {
+            winnerText.append("Somebody");
+        }
+
+        winnerText.append(String.format(" won the game!"));
+
+        this.gameSpace.getPlayers().sendMessage(winnerText.formatted(Formatting.GOLD));
         this.gameSpace.close(GameCloseReason.FINISHED);
     }
 }

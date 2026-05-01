@@ -5,7 +5,7 @@
     "max_duration": 60000,
     "frequency": 4,
     "players": {
-        "min": 1,
+        "min": 2,
         "max": 100
     },
     "blocks": [

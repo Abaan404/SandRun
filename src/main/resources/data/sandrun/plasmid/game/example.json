@@ -1,5 +1,5 @@
 {
-    "type": "sandrun:sandrun",
+    "type": "sandrun:game",
     "map": "sandrun:example",
     "pvp": false,
     "max_duration": 180000,

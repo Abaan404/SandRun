@@ -14,7 +14,7 @@ public class SandRun implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger(ID);
 
     public static final GameType<SandRunConfig> TYPE = GameType.register(
-            Identifier.of(ID, "sandrun"),
+            Identifier.of(ID, "game"),
             SandRunConfig.CODEC,
             Waiting::open);
 

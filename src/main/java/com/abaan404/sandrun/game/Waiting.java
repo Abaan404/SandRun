@@ -1,15 +1,19 @@
 package com.abaan404.sandrun.game;
 
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.math.Vec3d;
-import xyz.nucleoid.fantasy.RuntimeWorldConfig;
-import xyz.nucleoid.plasmid.api.game.*;
+import com.abaan404.sandrun.SandRunConfig;
+import com.abaan404.sandrun.SandRunMap;
+import com.abaan404.sandrun.gameplay.SpawnLogic;
+
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
-import com.abaan404.sandrun.game.map.SandRunMap;
-import com.abaan404.sandrun.game.map.SandRunMapGenerator;
+import xyz.nucleoid.fantasy.RuntimeWorldConfig;
+import xyz.nucleoid.plasmid.api.game.GameOpenContext;
+import xyz.nucleoid.plasmid.api.game.GameOpenProcedure;
+import xyz.nucleoid.plasmid.api.game.GameResult;
+import xyz.nucleoid.plasmid.api.game.GameSpace;
 import xyz.nucleoid.plasmid.api.game.common.GameWaitingLobby;
 import xyz.nucleoid.plasmid.api.game.event.GameActivityEvents;
 import xyz.nucleoid.plasmid.api.game.event.GamePlayerEvents;
@@ -17,31 +21,30 @@ import xyz.nucleoid.plasmid.api.game.player.JoinOffer;
 import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
-public class SandRunWaiting {
+public class Waiting {
     private final GameSpace gameSpace;
     private final SandRunMap map;
     private final SandRunConfig config;
-    private final SandRunSpawnLogic spawnLogic;
+    private final SpawnLogic spawnLogic;
     private final ServerWorld world;
 
-    private SandRunWaiting(GameSpace gameSpace, ServerWorld world, SandRunMap map, SandRunConfig config) {
+    private Waiting(GameSpace gameSpace, ServerWorld world, SandRunMap map, SandRunConfig config) {
         this.gameSpace = gameSpace;
         this.map = map;
         this.config = config;
         this.world = world;
-        this.spawnLogic = new SandRunSpawnLogic(gameSpace, world, map);
+        this.spawnLogic = new SpawnLogic(world);
     }
 
     public static GameOpenProcedure open(GameOpenContext<SandRunConfig> context) {
         SandRunConfig config = context.config();
-        SandRunMapGenerator generator = new SandRunMapGenerator(config.mapConfig());
-        SandRunMap map = generator.build();
 
+        SandRunMap map = SandRunMap.load(context.server(), config.map());
         RuntimeWorldConfig worldConfig = new RuntimeWorldConfig()
                 .setGenerator(map.asGenerator(context.server()));
 
         return context.openWithWorld(worldConfig, (game, world) -> {
-            SandRunWaiting waiting = new SandRunWaiting(game.getGameSpace(), world, map, context.config());
+            Waiting waiting = new Waiting(game.getGameSpace(), world, map, context.config());
 
             GameWaitingLobby.addTo(game, config.players());
 
@@ -54,7 +57,7 @@ public class SandRunWaiting {
     }
 
     private GameResult requestStart() {
-        SandRunActive.open(this.gameSpace, this.world, this.map, this.config);
+        Active.open(this.gameSpace, this.world, this.map, this.config);
         return GameResult.ok();
     }
 
@@ -70,6 +73,6 @@ public class SandRunWaiting {
 
     private void spawnPlayer(ServerPlayerEntity player) {
         this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
-        this.spawnLogic.spawnPlayer(player);
+        this.spawnLogic.spawnPlayer(player, this.map.getRegions().spawn());
     }
 }

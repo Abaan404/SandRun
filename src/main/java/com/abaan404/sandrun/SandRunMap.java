@@ -79,7 +79,7 @@ public class SandRunMap {
         try {
             template = MapTemplateSerializer.loadFromResource(server, identifier);
         } catch (IOException e) {
-            throw new GameOpenException(Text.of(String.format("Couldn't load track {}", identifier.toString())));
+            throw new GameOpenException(Text.of(String.format("Couldn't load map {}", identifier.toString())));
         }
 
         return new SandRunMap(template);
@@ -117,7 +117,7 @@ public class SandRunMap {
     }
 
     public record Meta(String name, List<String> authors) {
-        public static final Meta DEFAULT = new Meta("Unknown Track", List.of("Unknown Authors"));
+        public static final Meta DEFAULT = new Meta("Unknown Map", List.of("Unknown Authors"));
 
         public static final MapCodec<Meta> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 Codec.STRING.optionalFieldOf("name", DEFAULT.name()).forGetter(Meta::name),

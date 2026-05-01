@@ -2,7 +2,6 @@ package com.abaan404.sandrun.game;
 
 import com.abaan404.sandrun.SandRunConfig;
 import com.abaan404.sandrun.SandRunMap;
-import com.abaan404.sandrun.SandRunPlayer;
 import com.abaan404.sandrun.gameplay.StageManager;
 import com.mojang.authlib.GameProfile;
 
@@ -17,6 +16,7 @@ import xyz.nucleoid.plasmid.api.game.event.GamePlayerEvents;
 import xyz.nucleoid.plasmid.api.game.player.JoinOffer;
 import xyz.nucleoid.plasmid.api.game.player.JoinOfferResult;
 import xyz.nucleoid.plasmid.api.game.rule.GameRuleType;
+import xyz.nucleoid.plasmid.api.util.PlayerRef;
 import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
@@ -29,7 +29,7 @@ public class Active {
 
         // move players to participants from the lobby
         for (ServerPlayerEntity player : gameSpace.getPlayers().participants()) {
-            this.stageManager.toParticipant(SandRunPlayer.of(player));
+            this.stageManager.toParticipant(PlayerRef.of(player));
         }
     }
 
@@ -40,14 +40,12 @@ public class Active {
 
             game.setRule(GameRuleType.CRAFTING, EventResult.DENY);
             game.setRule(GameRuleType.PORTALS, EventResult.DENY);
-            game.setRule(GameRuleType.PVP, EventResult.DENY);
+            game.setRule(GameRuleType.SATURATED_REGENERATION, EventResult.DENY);
+            game.setRule(GameRuleType.PVP, config.pvp() ? EventResult.ALLOW : EventResult.DENY);
             game.setRule(GameRuleType.HUNGER, EventResult.DENY);
             game.setRule(GameRuleType.FALL_DAMAGE, EventResult.DENY);
             game.setRule(GameRuleType.INTERACTION, EventResult.DENY);
             game.setRule(GameRuleType.BLOCK_DROPS, EventResult.DENY);
-            // snowballs?
-            // game.setRule(GameRuleType.THROW_ITEMS, EventResult.DENY);
-            // game.setRule(GameRuleType.PICKUP_ITEMS, EventResult.DENY);
             game.setRule(GameRuleType.UNSTABLE_TNT, EventResult.DENY);
             game.setRule(GameRuleType.FIRE_TICK, EventResult.DENY);
             game.setRule(GameRuleType.ICE_MELT, EventResult.DENY);
@@ -70,7 +68,7 @@ public class Active {
     private JoinOfferResult.Accept offerPlayer(JoinOffer offer) {
         // join as spectator irrespective of intent
         for (GameProfile profile : offer.players()) {
-            SandRunPlayer player = SandRunPlayer.of(profile);
+            PlayerRef player = PlayerRef.of(profile);
             this.stageManager.toSpectator(player);
         }
 
@@ -82,14 +80,14 @@ public class Active {
     }
 
     private void removePlayer(ServerPlayerEntity player) {
-        this.stageManager.toSpectator(SandRunPlayer.of(player));
+        this.stageManager.toSpectator(PlayerRef.of(player));
     }
 
     private EventResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
         player.setHealth(20.0f);
-        this.stageManager.toSpectator(SandRunPlayer.of(player));
+        this.stageManager.toSpectator(PlayerRef.of(player));
         this.stageManager.spawnPlayer(player);
-        return EventResult.ALLOW;
+        return EventResult.DENY;
     }
 
     private void tick() {
